@@ -15,9 +15,9 @@ TARGET_DIR="../0_florida"
 
 for file in $TARGET_DIR/*.mtx; do
     mat=$(basename "$file" .mtx)
-    echo -n "$mat, "
     if [ -f "$file" ]; then
         for i in $(seq 1 $N); do
+            echo -n "$mat, "
             $CMD $file $COL $TOL $MIT
         done
     fi

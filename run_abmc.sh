@@ -2,25 +2,38 @@
 
 export OMP_NUM_THREADS=32
 
-echo "time, converged, iters, rel_resid, resid"
+echo "mat, nb, nc, cnv, time, iters, rel_resid, resid"
 
 # 実行回数
 N=10
 
+ABMC="../ABMC/abmc"
+
 CMD="./abmc_crs"
 TOL="1.0E-08"
 MIT="10000"
-DAT="./0_florida/525825_parabolic_fem.mtx"
 
-Bs=(32 64 128 256 512 1024 2047)
+TARGET_DIR="../0_florida"
 
-for B in "${Bs[@]}"
-do
-    BLK="./20260206_ABMC_dat/525825_parabolic_fem_abmc_B${B}_p1.blk"
-    BCOL="./20260206_ABMC_dat/525825_parabolic_fem_abmc_B${B}_p1.bcol"
+BS=(32 64 128 256 512 1024)
 
-    for i in $(seq 1 $N)
-    do
-        $CMD $DAT $BLK $BCOL $TOL $MIT
-    done
+for file in $TARGET_DIR/*.mtx; do
+    mat=$(basename "$file" .mtx)
+    if [ -f "$file" ]; then
+        for bs in "${BS[@]}"; do
+            abmc_out=$($ABMC $file $bs 1)
+            nb_val=$(echo "$abmc_out" | awk '{print $3}')
+            nc_val=$(echo "$abmc_out" | awk '{print $6}')
+            
+            BLK="$(basename "$file" .mtx)_abmc_B${bs}_p1.blk"
+            BCOL="$(basename "$file" .mtx)_abmc_B${bs}_p1.bcol"
+
+            for i in $(seq 1 $N); do
+                echo -n "$mat, $nb_val, $nc_val, "
+                $CMD $file $BLK $BCOL $TOL $MIT
+            done
+
+            rm -f $BLK $BCOL
+        done
+    fi
 done
