@@ -509,10 +509,14 @@ int main(int argc, char** argv) {
     auto end = steady_clock::now();    // 計測終了
     auto elapsed = duration_cast<milliseconds>(end - start).count();
 
-    std::cout << "cg_time [ms]=" << elapsed
-              << ", converged=" << out.converged
-              << ", iters=" << out.iters
-              << ", rel_resid=" << out.rel_resid;
+    // std::cout << "cg_time [ms]=" << elapsed
+    //           << ", converged=" << out.converged
+    //           << ", iters=" << out.iters
+    //           << ", rel_resid=" << out.rel_resid;
+    std::cout << out.converged
+              << ", " << elapsed
+              << ", " << out.iters
+              << ", " << out.rel_resid;
 
     // 残差 ||Ax - b||/||b|| のチェック
     std::vector<double> Ax;
@@ -525,7 +529,8 @@ int main(int argc, char** argv) {
         nr += d*d;
         nb += b[i]*b[i];
     }
-    std::cout << ", ||Ax-b||/||b|| = " << std::sqrt(nr)/std::sqrt(nb) << "\n";
+    // std::cout << ", ||Ax-b||/||b|| = " << std::sqrt(nr)/std::sqrt(nb) << "\n";
+    std::cout << ", " << std::sqrt(nr)/std::sqrt(nb) << "\n";
 
     return 0;
 }
