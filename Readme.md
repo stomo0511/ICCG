@@ -17,7 +17,7 @@ ICCG
 ## abmc_crs
 ブロック並列前処理付きICCG
 
-## 並列前進・後退代入
+## 並列前進代入
 ``` C++
 Input:
   L      : lower triangular matrix (IC(0))
@@ -36,4 +36,41 @@ for k = 1 to m do                    // color loop (sequential)
         y[i] = (r[i] − sum) / L[i,i]
     end parallel for
 end for
+```
+
+## 並列ブロック前進代入
+``` C++
+#pragma omp paralel {
+#pragma omp single {
+  for p = 0 to nc-1 do
+    for each block a in color p do
+      // rhs^p_a = r^p_a を初期化する task
+      #pragma omp task depend(out: rhs[p][a])
+      {
+        rhs[p][a] = r[p][a]
+      }
+
+      // 過去色 q < p からの寄与を rhs^p_a から引く
+      for q = 0 to p-1 do
+        for each block b in color q do
+          if L^{p,q}_{a,b} is nonzero then
+
+            #pragma omp task depend(in: y[q][b]) depend(inout: rhs[p][a])
+            {
+              temp = SpMV(L^{p,q}_{a,b}, y[q][b])
+              rhs[p][a] = rhs[p][a] - temp
+            }
+          end if
+        end for
+      end for
+
+      // 対角ブロックの前進代入
+      #pragma omp task depend(inout: rhs[p][a]) depend(out: y[p][a])
+      {
+        FS(L^{p,p}_{a,a}, rhs[p][a], y[p][a])
+      }
+    end for
+  end for
+}  
+}
 ```

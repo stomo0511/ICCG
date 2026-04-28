@@ -2,10 +2,14 @@
 
 export OMP_NUM_THREADS=32
 
-echo "mat, nc, cnv, time, iters, rel_resid, resid"
+#echo "mat, nc, cnv, time, iters, rel_resid, resid"
 
 # 実行回数
-N=10
+N=5
+
+EVENTS="l2_cache_accesses_from_dc_misses,\
+l2_cache_hits_from_dc_misses,\
+l2_cache_misses_from_dc_misses"
 
 GMC="../ABMC/gmc"
 
@@ -25,7 +29,7 @@ for file in $TARGET_DIR/*.mtx; do
 
     for i in $(seq 1 $N); do
         echo -n "$mat, $nc_val, "
-        $CMD $file $COL $TOL $MIT
+        perf stat -e "$EVENTS" $CMD $file $COL $TOL $MIT
     done
 
     rm -f $COL
