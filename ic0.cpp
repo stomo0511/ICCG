@@ -1,3 +1,4 @@
+#include <iostream>
 #include "ic0.hpp"
 #include "color.hpp"
 
@@ -97,10 +98,19 @@ void IC0::build_ic0(const CRS& Alo, double shift) {
             s += lij * lij;
         }
         int di = diag_pos[i];
+        double aii = L_val[di]; // もともと A(i,i) が入っている
         double diag = L_val[di] - s;
         diag += shift;                 // 安全シフト
-        if (diag <= 0.0)
+        if (diag <= 0.0) {
+            std::cerr << "IC(0): non-positive pivot\n"
+              << "  row      = " << i << "\n"
+              << "  Aii      = " << aii << "\n"
+              << "  sum      = " << s << "\n"
+              << "  shift    = " << shift << "\n"
+              << "  diag     = " << diag << "\n"
+              << "  row nnz  = " << (L_rowptr[i+1] - L_rowptr[i]) << "\n";
             throw std::runtime_error("IC(0): non-positive pivot at row " + std::to_string(i));
+        }
         L_val[di] = std::sqrt(diag);
     }
 }
