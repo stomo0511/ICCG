@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     std::string path = argv[1];  // matrix data file name
-    double tol = (argc >= 3) ? std::atof(argv[2]) : 1e-14;    // 収束判定
+    double tol = (argc >= 3) ? std::atof(argv[2]) : 1e-08;    // 収束判定
     int max_iter = (argc >= 4) ? std::atoi(argv[3]) : 10000;  // 最大反復回数
     #endif  // end of PIC
 
@@ -356,7 +356,7 @@ int main(int argc, char** argv) {
     }
     std::string path = argv[1];  // matrix data file name
     std::string cpath = argv[2]; // color define file name
-    double tol = (argc >= 4) ? std::atof(argv[3]) : 1e-14;    // 収束判定
+    double tol = (argc >= 4) ? std::atof(argv[3]) : 1e-08;    // 収束判定
     int max_iter = (argc >= 5) ? std::atoi(argv[4]) : 10000;  // 最大反復回数
 
     // abmc_crs
@@ -368,7 +368,7 @@ int main(int argc, char** argv) {
     std::string path = argv[1];  // matrix data file name
     std::string bpath = argv[2]; // block define file name
     std::string cpath = argv[3]; // block-color define file name
-    double tol = (argc >= 5) ? std::atof(argv[4]) : 1e-14;    // 収束判定
+    double tol = (argc >= 5) ? std::atof(argv[4]) : 1e-08;    // 収束判定
     int max_iter = (argc >= 6) ? std::atoi(argv[5]) : 10000;  // 最大反復回数
     #endif // end of ABMC
     #endif // end of PIC
