@@ -8,10 +8,10 @@ MKL_LIBS = -lmkl_rt -lpthread -lm -ldl
 
 UNAME = $(shell uname)
 ifeq ($(UNAME), Linux)
-	CXXFLAGS = -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
+	CXXFLAGS := -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
 	LDFLAGS = -L$(MKL_LIB) $(MKL_LIBS)
 else
-	CXXFLAGS = -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include
+	CXXFLAGS := -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include $(CXXFLAGS)
 	LDFLAGS = -L/opt/homebrew/opt/libomp/lib -lomp
 endif
 

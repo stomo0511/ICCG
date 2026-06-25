@@ -18,18 +18,21 @@ TARGET_DIR="../0_florida"
 for file in $TARGET_DIR/*.mtx; do
     mat=$(basename "$file" .mtx)
     if [ -f "$file" ]; then
-        abmc_out=$($ABMC $file)
-        nb_val=$(echo "$abmc_out" | awk '{print $3}')
-        nc_val=$(echo "$abmc_out" | awk '{print $6}')
+#        abmc_out=$($ABMC $file)
+#        nb_val=$(echo "$abmc_out" | awk '{print $3}')
+#        nc_val=$(echo "$abmc_out" | awk '{print $6}')
             
-        BLK="$(basename "$file" .mtx)_louvain.blk"
-        BCOL="$(basename "$file" .mtx)_louvain.bcol"
+        BLK="../ABMC/$(basename "$file" .mtx)_louvain.blk"
+        BCOL="../ABMC/$(basename "$file" .mtx)_louvain.bcol"
+
+        nb_val=$(head -n 1 "$BLK")
+        nc_val=$(head -n 1 "$BCOL")
 
         for i in $(seq 1 $N); do
             echo -n "$mat, $nb_val, $nc_val, "
             $CMD $file $BLK $BCOL $TOL $MIT
         done
 
-        rm -f $BLK $BCOL
+#        rm -f $BLK $BCOL
     fi
 done
