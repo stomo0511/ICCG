@@ -1,5 +1,6 @@
 CXX = g++
-CXXFLAGS = -Wno-nan-infinity-disabled -O3 -march=native -ffast-math -std=c++17
+# CXXFLAGS = -Wno-nan-infinity-disabled -O3 -march=native -ffast-math -std=c++17
+CXXFLAGS = -O3 -march=native -std=c++17
 
 MKL_INCLUDE = $(MKLROOT)/include
 MKL_LIB = $(MKLROOT)/lib/intel64
@@ -7,8 +8,11 @@ MKL_LIBS = -lmkl_rt -lpthread -lm -ldl
 
 UNAME = $(shell uname)
 ifeq ($(UNAME), Linux)
-	CXXFLAGS := -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
+	CXXFLAGS = -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
 	LDFLAGS = -L$(MKL_LIB) $(MKL_LIBS)
+else
+	CXXFLAGS = -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include
+	LDFLAGS = -L/opt/homebrew/opt/libomp/lib -lomp
 endif
 
 BIN_NOPRE := cg_crs
