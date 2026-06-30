@@ -16,6 +16,10 @@ else ifeq ($(UNAME), Linux)
 
 	CXXFLAGS := -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
 	LDFLAGS := -L$(MKL_LIB) $(MKL_LIBS)
+
+	ifeq ($(USER_NAME), a30029)  # 北大
+		CXX := icpc
+	endif
 endif
 
 BIN_NOPRE := cg
