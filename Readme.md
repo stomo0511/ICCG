@@ -2,19 +2,19 @@
 - CRS形式の疎行列に対する並列前処理付き共役勾配(CG)法
 - 前処理なしのCG法から、複数の並列前処理を実装
 
-## cg_crs
+## cg
 シンプルな共役勾配法
 
-## dcg_crs
+## dcg
 ヤコビ前処理（対角スケーリング）付きCG
 
-## iccg_crs
+## iccg
 ICCG
 
-## picg_crs
+## mcicg
 並列前処理（MC法）付きICCG
 
-## abmc_crs
+## bmciccg
 ブロック並列前処理付きICCG
 
 ## 並列前進代入

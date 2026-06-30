@@ -1,25 +1,28 @@
-CXX = g++
-# CXXFLAGS = -Wno-nan-infinity-disabled -O3 -march=native -ffast-math -std=c++17
-CXXFLAGS = -O3 -march=native -std=c++17
-
-MKL_INCLUDE = $(MKLROOT)/include
-MKL_LIB = $(MKLROOT)/lib/intel64
-MKL_LIBS = -lmkl_rt -lpthread -lm -ldl
+CXX := g++
+CXXFLAGS := -O3 -march=native -std=c++17
+LDFLAGS := 
 
 UNAME = $(shell uname)
-ifeq ($(UNAME), Linux)
-	CXXFLAGS := -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
-	LDFLAGS = -L$(MKL_LIB) $(MKL_LIBS)
-else
+USER_NAME = $(shell whoami)
+HOST_NAME = $(shell hostname)
+
+ifeq ($(UNAME), Darwin)  # MacOS
 	CXXFLAGS := -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include $(CXXFLAGS)
-	LDFLAGS = -L/opt/homebrew/opt/libomp/lib -lomp
+	LDFLAGS := -L/opt/homebrew/opt/libomp/lib -lomp
+else ifeq ($(UNAME), Linux)
+	MKL_INCLUDE = $(MKLROOT)/include
+	MKL_LIB = $(MKLROOT)/lib/intel64
+	MKL_LIBS = -lmkl_rt -lpthread -lm -ldl
+
+	CXXFLAGS := -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
+	LDFLAGS := -L$(MKL_LIB) $(MKL_LIBS)
 endif
 
-BIN_NOPRE := cg_crs
-BIN_JAC   := dcg_crs
-BIN_IC    := iccg_crs
-BIN_PIC   := piccg_crs
-BIN_ABMC  := abmc_crs
+BIN_NOPRE := cg
+BIN_JAC   := dcg
+BIN_IC    := iccg
+BIN_PIC   := mciccg
+BIN_ABMC  := bmciccg
 
 TARGET = $(BIN_NOPRE) $(BIN_JAC) $(BIN_IC) $(BIN_PIC) $(BIN_ABMC)
 
