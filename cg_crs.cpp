@@ -339,7 +339,7 @@ int main(int argc, char** argv) {
     // cg_crs, dcg_crs
     #ifndef PIC
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " matrix.mtx [tol=1e-14] [max_iter=10000]\n";
+        std::cerr << "Usage: " << argv[0] << " matrix.mtx [tol=1e-08] [max_iter=10000]\n";
         return 1;
     }
     std::string path = argv[1];  // matrix data file name
