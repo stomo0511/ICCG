@@ -33,6 +33,11 @@ struct IC0 {
     // 新しい apply を追加
     void apply(const std::vector<double>& r, std::vector<double>& z, const ColorSchedule* sched) const;
 
+    int size() const { return n; }
+    const std::vector<int>& l_rowptr() const { return L_rowptr; }
+    const std::vector<int>& l_colind() const { return L_colind; }
+    const std::vector<double>& l_val() const { return L_val; }
+
 private:
     int n = 0;
     // L（下三角＋対角）のCRS

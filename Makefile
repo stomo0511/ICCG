@@ -27,6 +27,10 @@ BIN_JAC   := dcg
 BIN_IC    := iccg
 BIN_PIC   := mciccg
 BIN_ABMC  := bmciccg
+BIN_LLT   := llt_eval
+BIN_LLT_IC    := llt_ic
+BIN_LLT_MCIC  := llt_mcic
+BIN_LLT_BMCIC := llt_bmcic
 
 TARGET = $(BIN_NOPRE) $(BIN_JAC) $(BIN_IC) $(BIN_PIC) $(BIN_ABMC)
 
@@ -42,7 +46,21 @@ PISRCS := $(ISRCS) color.cpp
 ABMCHDRS := $(PIHDRS) block.hpp
 ABMCSRCS := $(PISRCS) block.cpp
 
+LLTHDRS := crs_io.hpp color.hpp block.hpp ic0.hpp
+LLTSRCS := crs_io.cpp color.cpp block.cpp ic0.cpp llt_eval.cpp
+LLT_ERR_HDRS := crs_io.hpp ic0.hpp llt_err.hpp
+LLT_IC_SRCS := crs_io.cpp ic0.cpp llt_err.cpp llt_ic.cpp
+LLT_MCIC_SRCS := crs_io.cpp color.cpp ic0.cpp llt_err.cpp llt_mcic.cpp
+LLT_BMCIC_SRCS := crs_io.cpp color.cpp block.cpp ic0.cpp llt_err.cpp llt_bmcic.cpp
+LLT_CXXFLAGS := $(filter-out -DUSEMKL,$(CXXFLAGS))
+LLT_LDFLAGS := $(LDFLAGS)
+ifeq ($(UNAME), Linux)
+	LLT_LDFLAGS :=
+endif
+
 all: $(TARGET)
+
+llt: $(BIN_LLT_IC) $(BIN_LLT_MCIC) $(BIN_LLT_BMCIC)
 
 $(BIN_NOPRE): $(HDRS) $(SRCS)
 	$(CXX) $(CXXFLAGS) -DNOPRE -o $@ $(SRCS) $(LDFLAGS)
@@ -59,5 +77,17 @@ $(BIN_PIC): $(PIHDRS) $(PISRCS)
 $(BIN_ABMC): $(ABMCHDRS) $(ABMCSRCS)
 	$(CXX) $(CXXFLAGS) -DIC -DPIC -DABMC -o $@ $(ABMCSRCS) $(LDFLAGS)
 
+$(BIN_LLT): $(LLTHDRS) $(LLTSRCS)
+	$(CXX) $(LLT_CXXFLAGS) -DIC -DABMC -o $@ $(LLTSRCS) $(LLT_LDFLAGS)
+
+$(BIN_LLT_IC): $(LLT_ERR_HDRS) $(LLT_IC_SRCS)
+	$(CXX) $(LLT_CXXFLAGS) -DIC -o $@ $(LLT_IC_SRCS) $(LLT_LDFLAGS)
+
+$(BIN_LLT_MCIC): $(LLT_ERR_HDRS) color.hpp $(LLT_MCIC_SRCS)
+	$(CXX) $(LLT_CXXFLAGS) -DIC -o $@ $(LLT_MCIC_SRCS) $(LLT_LDFLAGS)
+
+$(BIN_LLT_BMCIC): $(LLT_ERR_HDRS) color.hpp block.hpp $(LLT_BMCIC_SRCS)
+	$(CXX) $(LLT_CXXFLAGS) -DIC -DABMC -o $@ $(LLT_BMCIC_SRCS) $(LLT_LDFLAGS)
+
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(BIN_LLT) $(BIN_LLT_IC) $(BIN_LLT_MCIC) $(BIN_LLT_BMCIC)
