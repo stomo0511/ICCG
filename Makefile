@@ -8,18 +8,18 @@ MKL_LIBS = -lmkl_rt -lpthread -lm -ldl
 
 UNAME = $(shell uname)
 ifeq ($(UNAME), Linux)
-	CXXFLAGS = -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
-	LDFLAGS = -L$(MKL_LIB) $(MKL_LIBS)
+	CXXFLAGS := -fopenmp -DUSEMKL $(CXXFLAGS) -I$(MKL_INCLUDE)
+	LDFLAGS := -L$(MKL_LIB) $(MKL_LIBS)
 else
-	CXXFLAGS = -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include
-	LDFLAGS = -L/opt/homebrew/opt/libomp/lib -lomp
+	CXXFLAGS := -Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include
+	LDFLAGS := -L/opt/homebrew/opt/libomp/lib -lomp
 endif
 
-BIN_NOPRE := cg_crs
-BIN_JAC   := dcg_crs
-BIN_IC    := iccg_crs
-BIN_PIC   := piccg_crs
-BIN_ABMC  := abmc_crs
+BIN_NOPRE := cg
+BIN_JAC   := dcg
+BIN_IC    := iccg
+BIN_PIC   := miccg
+BIN_ABMC  := bmciccg
 
 TARGET = $(BIN_NOPRE) $(BIN_JAC) $(BIN_IC) $(BIN_PIC) $(BIN_ABMC)
 
