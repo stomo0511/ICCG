@@ -339,30 +339,44 @@ int main(int argc, char** argv) {
     // cg_crs, dcg_crs
     #ifndef PIC
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " matrix.mtx [tol=1e-08] [max_iter=10000]\n";
+        std::cerr << "Usage: " << argv[0]
+                << " matrix.mtx [tol=1e-08] [max_iter=10000] [repeat=1]\n";
         return 1;
     }
-    std::string path = argv[1];  // matrix data file name
+    std::string path = argv[1];             // matrix data file name
     double tol = (argc >= 3) ? std::atof(argv[2]) : 1e-08;    // 収束判定
     int max_iter = (argc >= 4) ? std::atoi(argv[3]) : 10000;  // 最大反復回数
+    int repeat = (argc >= 5) ? std::atoi(argv[4]) : 1;   // ベンチマーク反復回数
+
+    if (repeat < 1) {
+        std::cerr << "repeat must be >= 1.\n";
+        return 1;
+    }
     #endif  // end of PIC
 
     // iccg_crs, piccg_crs
     #ifdef PIC
     #ifndef ABMC
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " matrix.mtx color.col [tol=1e-14] [max_iter=10000]\n";
+        std::cerr << "Usage: " << argv[0]
+          << " matrix.mtx color.col [tol=1e-08] [max_iter=10000] [repeat=1]\n";
         return 1;
     }
-    std::string path = argv[1];  // matrix data file name
-    std::string cpath = argv[2]; // color define file name
+    std::string path = argv[1];   // matrix data file name
+    std::string cpath = argv[2];  // color define file name
     double tol = (argc >= 4) ? std::atof(argv[3]) : 1e-08;    // 収束判定
     int max_iter = (argc >= 5) ? std::atoi(argv[4]) : 10000;  // 最大反復回数
+    int repeat = (argc >= 6) ? std::atoi(argv[5]) : 1;   // ベンチマーク反復回数
+
+    if (repeat < 1) {
+        std::cerr << "repeat must be >= 1.\n";
+        return 1;
+    }
 
     // abmc_crs
     #else
     if (argc < 4) {
-        std::cerr << "Usage: " << argv[0] << " matrix.mtx block.blk bcolor.bcol [tol=1e-14] [max_iter=10000]\n";
+        std::cerr << "Usage: " << argv[0] << " matrix.mtx block.blk bcolor.bcol [tol=1e-14] [max_iter=10000]  [repeat=1]\n";
         return 1;
     }
     std::string path = argv[1];  // matrix data file name
@@ -370,6 +384,7 @@ int main(int argc, char** argv) {
     std::string cpath = argv[3]; // block-color define file name
     double tol = (argc >= 5) ? std::atof(argv[4]) : 1e-08;    // 収束判定
     int max_iter = (argc >= 6) ? std::atoi(argv[5]) : 10000;  // 最大反復回数
+    int repeat = (argc >= 7) ? std::atoi(argv[6]) : 1;   // ベンチマーク反復回数
     #endif // end of ABMC
     #endif // end of PIC
 
@@ -455,11 +470,6 @@ int main(int argc, char** argv) {
     IC0 M(A_run, shift);  // IC(0) 前処理
     #endif
 
-    // std::cout << M.name() << " applied.\n";
-    // #ifdef IC
-    // std::cout << "IC shift=" << shift << "\n";
-    // #endif
-
     const ColorSchedule* sched_ptr = nullptr;
     ColorSchedule sched;
     
@@ -483,54 +493,44 @@ int main(int argc, char** argv) {
     #endif
     #endif // end of PIC
 
-    // #ifdef ABMC
-    /////////////////////////////////////////////
-    // デバッグ用チェック
-    // 2.1: 同色ブロック間エッジ検査（元の A でOK）
-    // DebugCheck_InterBlockSameColorEdges(
-    //     A,                // 読み込み直後の元行列
-    //     block_of_old,     // 旧ノード -> ブロック
-    //     block_color,      // ブロック -> 色
-    //     nbs, nbc);
-
-    // 3: スケジュール危険依存検査（Ap の下＋対角で j<i 依存を見る）
-    // DebugCheck_ScheduleHazards_OnLower(
-    //     Ap,               // expand_lower_to_full 済みの Ap（上下あり）
-    //     new_of_old,
-    //     color,            // 旧ノード -> 色（ABMCでは block_colorをノードに展開したもの）
-    //     &block_of_old,
-    //     &block_color);
-    // #endif
-    /////////////////////////////////////////////
-
     // CG反復部分
-    auto start = steady_clock::now();  // 計測開始
-    auto out = conjugate_gradient(A_run, b, x, M, max_iter, tol, sched_ptr);
-    auto end = steady_clock::now();    // 計測終了
-    auto elapsed = duration_cast<milliseconds>(end - start).count();
+    for (int run = 0; run < repeat; ++run) {
 
-    // std::cout << "cg_time [ms]=" << elapsed
-    //           << ", converged=" << out.converged
-    //           << ", iters=" << out.iters
-    //           << ", rel_resid=" << out.rel_resid;
-    std::cout << out.converged
-              << ", " << elapsed
-              << ", " << out.iters
-              << ", " << out.rel_resid;
+        // 各測定で同じ初期条件に戻す
+        std::fill(x.begin(), x.end(), 0.0);
 
-    // 残差 ||Ax - b||/||b|| のチェック
-    std::vector<double> Ax;
-    spmv(A_run, x, Ax);
+        // CG/ICCG の実行時間を計測
+        auto start = steady_clock::now();
 
-    double nr=0.0, nb=0.0;
-    #pragma omp parallel for reduction(+:nr,nb) schedule(static)
-    for (int i = 0; i < (int)Ax.size(); ++i) {
-        double d = Ax[i]-b[i];
-        nr += d*d;
-        nb += b[i]*b[i];
+        auto out = conjugate_gradient(
+            A_run, b, x, M, max_iter, tol, sched_ptr);
+
+        auto end = steady_clock::now();
+
+        double elapsed =
+            duration<double, std::milli>(end - start).count();
+
+        // 残差 ||Ax-b||/||b|| のチェック
+        std::vector<double> Ax;
+        spmv(A_run, x, Ax);
+
+        double nr = 0.0, nb = 0.0;
+
+        #pragma omp parallel for reduction(+:nr,nb) schedule(static)
+        for (int i = 0; i < (int)Ax.size(); ++i) {
+            double d = Ax[i] - b[i];
+            nr += d * d;
+            nb += b[i] * b[i];
+        }
+
+        // 各ベンチマーク実行について1行出力
+        std::cout << out.converged
+                << ", " << elapsed
+                << ", " << out.iters
+                << ", " << out.rel_resid
+                << ", " << std::sqrt(nr) / std::sqrt(nb)
+                << "\n";
     }
-    // std::cout << ", ||Ax-b||/||b|| = " << std::sqrt(nr)/std::sqrt(nb) << "\n";
-    std::cout << ", " << std::sqrt(nr)/std::sqrt(nb) << "\n";
 
     return 0;
 }
