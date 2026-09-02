@@ -20,8 +20,9 @@ BIN_JAC   := dcg
 BIN_IC    := iccg
 BIN_PIC   := miccg
 BIN_ABMC  := bmciccg
+BIN_CONDEST := condest_cg
 
-TARGET = $(BIN_NOPRE) $(BIN_JAC) $(BIN_IC) $(BIN_PIC) $(BIN_ABMC)
+TARGET = $(BIN_NOPRE) $(BIN_JAC) $(BIN_IC) $(BIN_PIC) $(BIN_ABMC) $(BIN_CONDEST)
 
 HDRS := crs_io.hpp precond.hpp
 SRCS := crs_io.cpp cg_crs.cpp
@@ -34,6 +35,9 @@ PISRCS := $(ISRCS) color.cpp
 
 ABMCHDRS := $(PIHDRS) block.hpp
 ABMCSRCS := $(PISRCS) block.cpp
+
+CONDEST_HDRS := crs_io.hpp
+CONDEST_SRCS := crs_io.cpp condest_cg.cpp
 
 all: $(TARGET)
 
@@ -51,6 +55,9 @@ $(BIN_PIC): $(PIHDRS) $(PISRCS)
 
 $(BIN_ABMC): $(ABMCHDRS) $(ABMCSRCS)
 	$(CXX) $(CXXFLAGS) -DIC -DPIC -DABMC -o $@ $(ABMCSRCS) $(LDFLAGS)
+
+$(BIN_CONDEST): $(CONDEST_HDRS) $(CONDEST_SRCS)
+	$(CXX) $(CXXFLAGS) -o $@ $(CONDEST_SRCS) $(LDFLAGS)
 
 clean:
 	rm -f $(TARGET)
