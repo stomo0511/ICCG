@@ -83,6 +83,7 @@ struct CGResult {
     int iters = 0;
     double rel_resid = NAN;
     bool converged = false;
+    double spmv_ms = 0.0;
 };
 
 // CG法
@@ -99,7 +100,16 @@ CGResult conjugate_gradient(
     const int n = A.n;
     std::vector<double> r(n), p(n), z(n), Ap(n), Ax(n);
 
-    spmv(A, x, Ax);
+    auto timed_spmv = [&](const std::vector<double>& input, std::vector<double>& output) {
+        const auto start = steady_clock::now();
+        spmv(A, input, output);
+        const auto end = steady_clock::now();
+        return duration<double, std::milli>(end - start).count();
+    };
+
+    CGResult res;
+
+    res.spmv_ms += timed_spmv(x, Ax);
     // r0 = b - A x0
     #pragma omp parallel for schedule(static)
     for (int i = 0; i < n; ++i)
@@ -114,7 +124,6 @@ CGResult conjugate_gradient(
     p = z;
     double rz_old = dot(r, z);
 
-    CGResult res; 
     res.rel_resid = nrm2(r)/normb;
     if (res.rel_resid < tol) { 
         res.converged = true; 
@@ -123,7 +132,7 @@ CGResult conjugate_gradient(
     }
 
     for (int k = 0; k < max_iter; ++k) {
-        spmv(A, p, Ap);
+        res.spmv_ms += timed_spmv(p, Ap);
         double pAp = dot(p, Ap);
         double eps = std::numeric_limits<double>::epsilon();
         double thr = eps * nrm2(p) * nrm2(Ap);
@@ -499,6 +508,10 @@ int main(int argc, char** argv) {
         // 各測定で同じ初期条件に戻す
         std::fill(x.begin(), x.end(), 0.0);
 
+        #ifdef ABMC
+        M.reset_timing();
+        #endif
+
         // CG/ICCG の実行時間を計測
         auto start = steady_clock::now();
 
@@ -509,6 +522,10 @@ int main(int argc, char** argv) {
 
         double elapsed =
             duration<double, std::milli>(end - start).count();
+
+        #ifdef ABMC
+        const auto preconditioner_timing = M.timing();
+        #endif
 
         // 残差 ||Ax-b||/||b|| のチェック
         std::vector<double> Ax;
@@ -526,6 +543,11 @@ int main(int argc, char** argv) {
         // 各ベンチマーク実行について1行出力
         std::cout << out.converged
                 << ", " << elapsed
+            #ifdef ABMC
+            << ", " << preconditioner_timing.forward_ms
+            << ", " << preconditioner_timing.backward_ms
+            << ", " << out.spmv_ms
+            #endif
                 << ", " << out.iters
                 << ", " << out.rel_resid
                 << ", " << std::sqrt(nr) / std::sqrt(nb)

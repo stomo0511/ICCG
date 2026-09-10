@@ -9,6 +9,11 @@
 
 // ic0.hpp 
 struct IC0 {
+    struct Timing {
+        double forward_ms = 0.0;
+        double backward_ms = 0.0;
+    };
+
     // 係数の安全マージン（負のsqrt回避用）：A_ii - Σ L^2 + shift を使う
     explicit IC0(const CRS& A, double shift = 1e-12);
 
@@ -32,6 +37,9 @@ struct IC0 {
 
     // 新しい apply を追加
     void apply(const std::vector<double>& r, std::vector<double>& z, const ColorSchedule* sched) const;
+
+    void reset_timing() const { timing_ = {}; }
+    Timing timing() const { return timing_; }
 
     int size() const { return n; }
     const std::vector<int>& l_rowptr() const { return L_rowptr; }
@@ -78,4 +86,6 @@ private:
                          const int* rows_of_block,
                          const double* y, double* x) const;
     #endif // end of PIC
+
+    mutable Timing timing_;
 };

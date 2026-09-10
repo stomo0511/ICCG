@@ -1,5 +1,6 @@
 #include "ic0.hpp"
 #include "color.hpp"
+#include <chrono>
 
 // ic0.cpp：本体
 IC0::IC0(const CRS& A, double shift) {
@@ -365,10 +366,17 @@ void IC0::apply(const std::vector<double>& r, std::vector<double>& z, const Colo
         sched->color_ptr_blk && sched->blocks_of_color &&
         sched->block_ptr && sched->rows_of_block)
     {
+        const auto forward_start = std::chrono::steady_clock::now();
         forward_solve_abmc(sched->nc, sched->color_ptr_blk, sched->blocks_of_color,
                            sched->block_ptr, sched->rows_of_block, r.data(), y.data());
+        const auto forward_end = std::chrono::steady_clock::now();
+        timing_.forward_ms += std::chrono::duration<double, std::milli>(forward_end - forward_start).count();
+
+        const auto backward_start = std::chrono::steady_clock::now();
         backward_solve_abmc(sched->nc, sched->color_ptr_blk, sched->blocks_of_color,
                             sched->block_ptr, sched->rows_of_block, y.data(), z.data());
+        const auto backward_end = std::chrono::steady_clock::now();
+        timing_.backward_ms += std::chrono::duration<double, std::milli>(backward_end - backward_start).count();
         return;
     }
 
