@@ -32,7 +32,7 @@ BIN_LLT_IC    := llt_ic
 BIN_LLT_MCIC  := llt_mcic
 BIN_LLT_BMCIC := llt_bmcic
 
-TARGET = $(BIN_NOPRE) $(BIN_JAC) $(BIN_IC) $(BIN_PIC) $(BIN_ABMC)
+TARGET = $(BIN_NOPRE) $(BIN_JAC) $(BIN_IC) $(BIN_PIC) $(BIN_ABMC) $(BIN_LLT) $(BIN_LLT_IC) $(BIN_LLT_MCIC) $(BIN_LLT_BMCIC)
 
 HDRS := crs_io.hpp precond.hpp
 SRCS := crs_io.cpp cg_crs.cpp
@@ -90,4 +90,4 @@ $(BIN_LLT_BMCIC): $(LLT_ERR_HDRS) color.hpp block.hpp $(LLT_BMCIC_SRCS)
 	$(CXX) $(LLT_CXXFLAGS) -DIC -DABMC -o $@ $(LLT_BMCIC_SRCS) $(LLT_LDFLAGS)
 
 clean:
-	rm -f $(TARGET) $(BIN_LLT) $(BIN_LLT_IC) $(BIN_LLT_MCIC) $(BIN_LLT_BMCIC)
+	rm -f $(TARGET)
